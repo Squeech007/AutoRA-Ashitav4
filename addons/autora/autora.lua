@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 addon.name    = 'AutoRA';
 addon.author  = 'banggugyangu';
-addon.version = '1.1';
+addon.version = '1.3';
 
 --Dependencies--
 require('common');
@@ -21,10 +21,10 @@ gPacket = require('packetHandler');
 
 local default_settings = T{
 
-        HaltOnTP = true,
-        Delay = 0,
-        DelayOffset = 0,
-        verbose = true;
+    HaltOnTP = true,
+    Delay = 0,
+    DelayOffset = 0,
+    verbose = true;
 };
 
 --Addon Variables--
@@ -45,7 +45,7 @@ end);
 
 local makeString = function(table, value)
     if (table[value] == nil) then
-            return 'Nil';
+        return 'Nil';
     else
         return table[value];
     end
@@ -60,15 +60,7 @@ local StatusTable = T{
     [33] = 'Resting'
 };
 
-
---Player Information Build--
 local playerData = {};
-local playerEntity = AshitaCore:GetMemoryManager():GetEntity();
-local party = AshitaCore:GetMemoryManager():GetParty();
-local playerIndex = party:GetMemberTargetIndex(0);
-playerData.statusID = playerEntity:GetStatus(playerIndex);
-playerData.status = makeString(StatusTable, playerEntity:GetStatus(playerIndex));
-playerData.TP = party:GetMemberTP(0);
 
 --Send Shoot Command to Client--
 local shoot = function()
@@ -81,6 +73,14 @@ ashita.events.register('packet_in', 'packet_in_cb', function (e)
 end);
 
 ashita.events.register('d3d_present', 'present_cb', function()
+    --Player Information Build--
+    local playerEntity = AshitaCore:GetMemoryManager():GetEntity();
+    local party = AshitaCore:GetMemoryManager():GetParty();
+    local playerIndex = party:GetMemberTargetIndex(0);
+    playerData.statusID = playerEntity:GetStatus(playerIndex);
+    playerData.status = makeString(StatusTable, playerEntity:GetStatus(playerIndex));
+    playerData.TP = party:GetMemberTP(0);
+
     local LastRA = gPacket.RAFinTime;
     local delay = LastRA + 3;
     local curTime = os.time();
