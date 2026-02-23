@@ -86,36 +86,41 @@ ashita.events.register('d3d_present', 'present_cb', function()
     local curTime = os.time();
     playerData.TP = party:GetMemberTP(0);
 
-    if(playerData.status == 'Engaged')then
-
-        if(autora.auto == true)then
-            if(playerData.TP >= 1000)then
-                autora.auto = false;
-                if(autora.settings.verbose == true)then
-                    print(chat.header('AutoRA:  Auto Fire Blocked'));
-                    print(chat.message('Reason:  1000 TP'));
-                end
-                return;
-            end
-            if(curTime > delay and gPacket.Firing == false)then
-                gPacket.Firing = true;
-                shoot();
-            end
-            if(curTime >= delay + 5 and gPacket.Firing == true)then
-                gPacket.Firing = false;
-            end
-        else
-            gPacket.Firing = false;
-        end
-
-    else
-
-        if(autora.settings.verbose == true and autora.auto == true) then
+    -- Exit early if not engaged
+    if (playerData.status ~= 'Engaged') then
+        if (autora.auto) then
             autora.auto = false;
+        if (autora.settings.verbose) then
             print(chat.header('AutoRA:  Auto Fire Blocked'));
-            print(chat.message('Reason:  Player Not Engaged with Target'));
-        end
+        print(chat.message('Reason:  Player Not Engaged with Target'));
+    end
+    end
+    gPacket.Firing = false;
+    return;
+    end
 
+    -- Exit early if auto-fire is disabled
+    if (not autora.auto) then
+        gPacket.Firing = false;
+    return;
+    end
+
+    -- Respect the HaltOnTP flag
+    if (autora.settings.HaltOnTP and playerData.TP >= 1000) then
+        autora.auto = false;
+    if (autora.settings.verbose) then
+        print(chat.header('AutoRA:  Auto Fire Blocked'));
+    print(chat.message('Reason:  1000 TP'));
+    end
+    return;
+    end
+
+    -- Handle firing and state reset logic
+    if (curTime > delay and not gPacket.Firing) then
+        gPacket.Firing = true;
+    shoot();
+    elseif (curTime >= delay + 5) then
+        gPacket.Firing = false;
     end
 
 end);
@@ -170,4 +175,5 @@ ashita.events.register('unload', 'unload_cb', function()
     AshitaCore:GetChatManager():QueueCommand(-1, '/unbind !D');
     settings.save();
 end)
+
 
